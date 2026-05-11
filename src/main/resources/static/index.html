@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Process Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
+        header { background: #1a1a2e; color: white; padding: 20px 40px; }
+        header h1 { font-size: 24px; }
+        header p { font-size: 14px; color: #aaa; margin-top: 4px; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card h2 { font-size: 18px; margin-bottom: 16px; color: #1a1a2e; }
+        .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .upload-area:hover { border-color: #4a90e2; background: #f0f6ff; }
+        .upload-area input { display: none; }
+        .upload-area p { color: #666; margin-top: 8px; font-size: 14px; }
+        .btn { background: #1a1a2e; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 16px; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #4a90e2; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .kpi-box { background: #f8f9fa; border-radius: 8px; padding: 20px; text-align: center; border-left: 4px solid #4a90e2; }
+        .kpi-box.warning { border-left-color: #e74c3c; }
+        .kpi-box.good { border-left-color: #2ecc71; }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #1a1a2e; }
+        .kpi-label { font-size: 13px; color: #666; margin-top: 4px; }
+        .suggestions { list-style: none; }
+        .suggestions li { background: #fff3cd; border-left: 4px solid #f39c12; padding: 12px 16px; margin-bottom: 8px; border-radius: 4px; font-size: 14px; }
+        .suggestions li.good { background: #d4edda; border-left-color: #2ecc71; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #1a1a2e; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        tr:hover td { background: #f8f9fa; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge.red { background: #fde8e8; color: #e74c3c; }
+        .badge.green { background: #d4edda; color: #27ae60; }
+        #results { display: none; }
+        #loading { display: none; text-align: center; padding: 20px; color: #666; }
+        #filename { margin-top: 12px; font-size: 14px; color: #4a90e2; font-weight: bold; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>AI Business Process Assistant</h1>
+    <p>Upload your process data and get instant insights</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Upload Process Data (CSV)</h2>
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div style="font-size: 48px;">📂</div>
+            <p>Click to select a CSV file</p>
+            <p style="font-size:12px;">Required columns: caseId, department, status, priority, createdDate, dueDate, completedDate, delayDays</p>
+            <input type="file" id="fileInput" accept=".csv" onchange="handleFile(event)">
+        </div>
+        <div id="filename"></div>
+        <button class="btn" id="analyzeBtn" onclick="analyze()" disabled>Analyze</button>
+    </div>
+
+    <div id="loading">
+        <p>Analyzing your data...</p>
+    </div>
+
+    <div id="results">
+        <div class="kpi-grid">
+            <div class="kpi-box">
+                <div class="kpi-value" id="totalCases">-</div>
+                <div class="kpi-label">Total Cases</div>
+            </div>
+            <div class="kpi-box warning">
+                <div class="kpi-value" id="delayedCases">-</div>
+                <div class="kpi-label">Delayed Cases</div>
+            </div>
+            <div class="kpi-box">
+                <div class="kpi-value" id="delayRate">-</div>
+                <div class="kpi-label">Delay Rate</div>
+            </div>
+            <div class="kpi-box">
+                <div class="kpi-value" id="openCases">-</div>
+                <div class="kpi-label">Open Cases</div>
+            </div>
+            <div class="kpi-box">
+                <div class="kpi-value" id="avgDelay">-</div>
+                <div class="kpi-label">Avg Delay (Days)</div>
+            </div>
+            <div class="kpi-box good">
+                <div class="kpi-value" id="closedCases">-</div>
+                <div class="kpi-label">Closed Cases</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Recommendations</h2>
+            <ul class="suggestions" id="suggestions"></ul>
+        </div>
+
+        <div class="card">
+            <h2>Department Breakdown</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Total</th>
+                        <th>Open</th>
+                        <th>Delayed</th>
+                        <th>Avg Delay</th>
+                        <th>Delay Rate</th>
+                    </tr>
+                </thead>
+                <tbody id="deptTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedFile = null;
+
+    function handleFile(event) {
+        selectedFile = event.target.files[0];
+        if (selectedFile) {
+            document.getElementById('filename').textContent = 'Selected: ' + selectedFile.name;
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+    }
+
+    async function analyze() {
+        if (!selectedFile) return;
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('analyzeBtn').disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try {
+            const response = await fetch('/api/analyze', { method: 'POST', body: formData });
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            alert('Error analyzing file. Please check the CSV format.');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+    }
+
+    function displayResults(data) {
+        document.getElementById('totalCases').textContent = data.totalCases;
+        document.getElementById('delayedCases').textContent = data.delayedCases;
+        document.getElementById('delayRate').textContent = data.delayRatePercent.toFixed(1) + '%';
+        document.getElementById('openCases').textContent = data.openCases;
+        document.getElementById('avgDelay').textContent = data.avgDelayDays.toFixed(1);
+        document.getElementById('closedCases').textContent = data.totalCases - data.openCases;
+
+        const suggList = document.getElementById('suggestions');
+        suggList.innerHTML = '';
+        data.suggestions.forEach(s => {
+            const li = document.createElement('li');
+            li.textContent = s;
+            if (s.includes('gut') || s.includes('keine')) li.className = 'good';
+            suggList.appendChild(li);
+        });
+
+        const tbody = document.getElementById('deptTable');
+        tbody.innerHTML = '';
+        data.departmentBreakdown.forEach(dept => {
+            const rate = dept.delayRatePercent.toFixed(0);
+            const badgeClass = rate > 50 ? 'red' : 'green';
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${dept.department}</strong></td>
+                    <td>${dept.totalCases}</td>
+                    <td>${dept.openCases}</td>
+                    <td>${dept.delayedCases}</td>
+                    <td>${dept.avgDelayDays.toFixed(1)} days</td>
+                    <td><span class="badge ${badgeClass}">${rate}%</span></td>
+                </tr>`;
+        });
+
+        document.getElementById('results').style.display = 'block';
+    }
+</script>
+</body>
+</html>
