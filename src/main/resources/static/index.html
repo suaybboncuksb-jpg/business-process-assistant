@@ -5,183 +5,387 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Business Process Assistant</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
-        header { background: #1a1a2e; color: white; padding: 20px 40px; }
-        header h1 { font-size: 24px; }
-        header p { font-size: 14px; color: #aaa; margin-top: 4px; }
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .card h2 { font-size: 18px; margin-bottom: 16px; color: #1a1a2e; }
-        .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .upload-area:hover { border-color: #4a90e2; background: #f0f6ff; }
-        .upload-area input { display: none; }
-        .upload-area p { color: #666; margin-top: 8px; font-size: 14px; }
-        .btn { background: #1a1a2e; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 16px; width: 100%; transition: 0.3s; }
-        .btn:hover { background: #4a90e2; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-        .kpi-box { background: #f8f9fa; border-radius: 8px; padding: 20px; text-align: center; border-left: 4px solid #4a90e2; }
-        .kpi-box.warning { border-left-color: #e74c3c; }
-        .kpi-box.good { border-left-color: #2ecc71; }
-        .kpi-value { font-size: 32px; font-weight: bold; color: #1a1a2e; }
-        .kpi-label { font-size: 13px; color: #666; margin-top: 4px; }
-        .suggestions { list-style: none; }
-        .suggestions li { background: #fff3cd; border-left: 4px solid #f39c12; padding: 12px 16px; margin-bottom: 8px; border-radius: 4px; font-size: 14px; }
-        .suggestions li.good { background: #d4edda; border-left-color: #2ecc71; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #1a1a2e; color: white; padding: 12px; text-align: left; }
-        td { padding: 10px 12px; border-bottom: 1px solid #eee; }
-        tr:hover td { background: #f8f9fa; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .badge.red { background: #fde8e8; color: #e74c3c; }
-        .badge.green { background: #d4edda; color: #27ae60; }
-        #results { display: none; }
-        #loading { display: none; text-align: center; padding: 20px; color: #666; }
-        #filename { margin-top: 12px; font-size: 14px; color: #4a90e2; font-weight: bold; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,sans-serif;background:#f0f2f5;color:#333}
+        header{background:#1a1a2e;color:white;padding:20px 40px;display:flex;justify-content:space-between;align-items:center}
+        header h1{font-size:22px}
+        header p{font-size:13px;color:#aaa;margin-top:3px}
+        .ai-badge{background:#4a90e2;color:white;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:bold;margin-left:8px}
+        .lang-switch{display:flex;gap:8px}
+        .lang-btn{background:transparent;border:1px solid #555;color:#aaa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:0.2s}
+        .lang-btn.active{background:#4a90e2;border-color:#4a90e2;color:white}
+        .container{max-width:960px;margin:32px auto;padding:0 20px}
+        .card{background:white;border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+        .card h2{font-size:17px;margin-bottom:14px;color:#1a1a2e}
+        .upload-area{border:2px dashed #ccc;border-radius:8px;padding:36px;text-align:center;cursor:pointer;transition:0.3s}
+        .upload-area:hover{border-color:#4a90e2;background:#f0f6ff}
+        .upload-area input{display:none}
+        .btn-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+        .btn{border:none;padding:11px 20px;border-radius:8px;font-size:14px;cursor:pointer;transition:0.3s;color:white}
+        .btn:disabled{opacity:0.4;cursor:not-allowed}
+        .btn-standard{background:#1a1a2e}
+        .btn-standard:hover:not(:disabled){background:#2d2d4e}
+        .btn-ai{background:linear-gradient(135deg,#667eea,#764ba2)}
+        .btn-universal{background:#2ecc71}
+        .btn-universal:hover:not(:disabled){background:#27ae60}
+        #filename{margin-top:10px;font-size:13px;color:#4a90e2;font-weight:bold}
+        .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+        .kpi-box{background:#f8f9fa;border-radius:8px;padding:18px;text-align:center;border-left:4px solid #4a90e2}
+        .kpi-box.warn{border-left-color:#e74c3c}
+        .kpi-box.good{border-left-color:#2ecc71}
+        .kpi-value{font-size:28px;font-weight:bold;color:#1a1a2e}
+        .kpi-label{font-size:12px;color:#666;margin-top:3px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th{background:#1a1a2e;color:white;padding:10px;text-align:left}
+        td{padding:9px 10px;border-bottom:1px solid #eee}
+        tr:hover td{background:#f8f9fa}
+        .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+        .badge.red{background:#fde8e8;color:#e74c3c}
+        .badge.green{background:#d4edda;color:#27ae60}
+        .badge.orange{background:#fff3cd;color:#e67e22}
+        .health-wrap{background:#eee;border-radius:6px;height:18px;margin:6px 0 14px}
+        .health-bar{height:18px;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11px;color:white;font-weight:bold;transition:width 1s}
+        .ai-summary{background:#f0f6ff;border-left:4px solid #4a90e2;padding:14px;border-radius:4px;margin-bottom:16px;font-size:14px;line-height:1.6}
+        .trend-box{display:inline-block;padding:6px 14px;border-radius:16px;font-size:13px;font-weight:bold;margin-bottom:16px}
+        .trend-box.red{background:#fde8e8;color:#e74c3c}
+        .trend-box.orange{background:#fff3cd;color:#e67e22}
+        .trend-box.green{background:#d4edda;color:#27ae60}
+        .rec-card{border:1px solid #eee;border-radius:8px;padding:14px;margin-bottom:10px;border-left:4px solid #ccc}
+        .rec-card.CRITICAL{border-left-color:#e74c3c}
+        .rec-card.HIGH{border-left-color:#e67e22}
+        .rec-card.MEDIUM{border-left-color:#f1c40f}
+        .rec-card.POSITIVE{border-left-color:#2ecc71}
+        .rec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+        .rec-category{font-weight:bold;font-size:13px;color:#1a1a2e}
+        .rec-severity{font-size:11px;font-weight:bold;padding:2px 8px;border-radius:10px}
+        .sev-CRITICAL{background:#fde8e8;color:#e74c3c}
+        .sev-HIGH{background:#fff0e6;color:#e67e22}
+        .sev-MEDIUM{background:#fffde7;color:#f39c12}
+        .sev-POSITIVE{background:#d4edda;color:#27ae60}
+        .rec-insight{font-size:13px;color:#555;margin-bottom:6px}
+        .rec-action{font-size:12px;color:#333;background:#f8f9fa;padding:7px;border-radius:4px}
+        .confidence{font-size:11px;color:#999;margin-top:6px}
+        .conf-bar{display:inline-block;width:70px;height:5px;background:#eee;border-radius:3px;vertical-align:middle;margin-left:6px}
+        .conf-fill{height:5px;border-radius:3px;background:#4a90e2}
+        .insight-item{background:#f8f9fa;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:13px;border-left:3px solid #4a90e2}
+        .insight-item.warn{border-left-color:#e74c3c;background:#fff8f8}
+        .insight-item.good{border-left-color:#2ecc71;background:#f0fff4}
+        .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+        .stat-box{background:#f8f9fa;border-radius:8px;padding:14px;border-top:3px solid #4a90e2}
+        .stat-box h4{font-size:12px;color:#666;margin-bottom:8px}
+        .stat-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #eee}
+        .stat-row:last-child{border:none}
+        .stat-row strong{color:#1a1a2e}
+        .type-badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:bold;margin-bottom:14px}
+        .type-GRADES{background:#e8f4fd;color:#2980b9}
+        .type-FINANCE{background:#e8f8f0;color:#27ae60}
+        .type-PROCESS{background:#fef9e7;color:#e67e22}
+        .type-GENERAL{background:#f4f4f4;color:#666}
+        #results{display:none}
+        #ai-results{display:none}
+        #universal-results{display:none}
     </style>
 </head>
 <body>
 <header>
-    <h1>AI Business Process Assistant</h1>
-    <p>Upload your process data and get instant insights</p>
+    <div>
+        <h1>AI Business Process Assistant <span class="ai-badge">AI Powered</span></h1>
+        <p id="subtitle">Upload your process data and get instant insights</p>
+    </div>
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('de')">DE</button>
+    </div>
 </header>
 
 <div class="container">
     <div class="card">
-        <h2>Upload Process Data (CSV)</h2>
+        <h2 id="uploadTitle">Upload Data (CSV)</h2>
         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <div style="font-size: 48px;">📂</div>
-            <p>Click to select a CSV file</p>
-            <p style="font-size:12px;">Required columns: caseId, department, status, priority, createdDate, dueDate, completedDate, delayDays</p>
+            <div style="font-size:40px">📂</div>
+            <p id="uploadHint">Click to select a CSV file</p>
+            <p style="font-size:11px;color:#999;margin-top:4px" id="uploadSub">Any CSV format supported – process data, grades, finance data</p>
             <input type="file" id="fileInput" accept=".csv" onchange="handleFile(event)">
         </div>
         <div id="filename"></div>
-        <button class="btn" id="analyzeBtn" onclick="analyze()" disabled>Analyze</button>
+        <div class="btn-row">
+            <button class="btn btn-standard" id="btn1" onclick="analyze()" disabled>📊 <span id="btn1txt">Standard Analysis</span></button>
+            <button class="btn btn-ai" id="btn2" onclick="analyzeAI()" disabled>🤖 <span id="btn2txt">AI Deep Analysis</span></button>
+            <button class="btn btn-universal" id="btn3" onclick="analyzeUniversal()" disabled>🔍 <span id="btn3txt">Universal Analysis</span></button>
+        </div>
     </div>
 
-    <div id="loading">
-        <p>Analyzing your data...</p>
-    </div>
-
+    <!-- Standard Results -->
     <div id="results">
         <div class="kpi-grid">
-            <div class="kpi-box">
-                <div class="kpi-value" id="totalCases">-</div>
-                <div class="kpi-label">Total Cases</div>
-            </div>
-            <div class="kpi-box warning">
-                <div class="kpi-value" id="delayedCases">-</div>
-                <div class="kpi-label">Delayed Cases</div>
-            </div>
-            <div class="kpi-box">
-                <div class="kpi-value" id="delayRate">-</div>
-                <div class="kpi-label">Delay Rate</div>
-            </div>
-            <div class="kpi-box">
-                <div class="kpi-value" id="openCases">-</div>
-                <div class="kpi-label">Open Cases</div>
-            </div>
-            <div class="kpi-box">
-                <div class="kpi-value" id="avgDelay">-</div>
-                <div class="kpi-label">Avg Delay (Days)</div>
-            </div>
-            <div class="kpi-box good">
-                <div class="kpi-value" id="closedCases">-</div>
-                <div class="kpi-label">Closed Cases</div>
-            </div>
+            <div class="kpi-box"><div class="kpi-value" id="totalCases">-</div><div class="kpi-label" id="lbl1">Total Cases</div></div>
+            <div class="kpi-box warn"><div class="kpi-value" id="delayedCases">-</div><div class="kpi-label" id="lbl2">Delayed Cases</div></div>
+            <div class="kpi-box"><div class="kpi-value" id="delayRate">-</div><div class="kpi-label" id="lbl3">Delay Rate</div></div>
+            <div class="kpi-box"><div class="kpi-value" id="openCases">-</div><div class="kpi-label" id="lbl4">Open Cases</div></div>
+            <div class="kpi-box"><div class="kpi-value" id="avgDelay">-</div><div class="kpi-label" id="lbl5">Avg Delay (Days)</div></div>
+            <div class="kpi-box good"><div class="kpi-value" id="closedCases">-</div><div class="kpi-label" id="lbl6">Closed Cases</div></div>
         </div>
-
         <div class="card">
-            <h2>Recommendations</h2>
-            <ul class="suggestions" id="suggestions"></ul>
+            <h2 id="deptTitle">Department Breakdown</h2>
+            <table><thead><tr>
+                <th id="th1">Department</th><th id="th2">Total</th><th id="th3">Open</th>
+                <th id="th4">Delayed</th><th id="th5">Avg Delay</th><th id="th6">Delay Rate</th>
+            </tr></thead><tbody id="deptTable"></tbody></table>
         </div>
+    </div>
 
+    <!-- AI Results -->
+    <div id="ai-results">
         <div class="card">
-            <h2>Department Breakdown</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Department</th>
-                        <th>Total</th>
-                        <th>Open</th>
-                        <th>Delayed</th>
-                        <th>Avg Delay</th>
-                        <th>Delay Rate</th>
-                    </tr>
-                </thead>
-                <tbody id="deptTable"></tbody>
-            </table>
+            <h2 id="aiTitle">🤖 AI Analysis Report</h2>
+            <div class="ai-summary" id="aiSummary"></div>
+            <div id="trendBox"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <strong id="healthLabel">Process Health Score</strong>
+                <span id="healthScoreLabel" style="font-weight:bold;font-size:17px"></span>
+            </div>
+            <div class="health-wrap"><div class="health-bar" id="healthBar"></div></div>
+        </div>
+        <div class="card">
+            <h2 id="recTitle">AI Recommendations</h2>
+            <div id="recList"></div>
+        </div>
+        <div style="text-align:center;color:#aaa;font-size:11px;margin-bottom:20px" id="generatedBy"></div>
+    </div>
+
+    <!-- Universal Results -->
+    <div id="universal-results">
+        <div class="card">
+            <h2 id="uniTitle">📊 Universal Analysis</h2>
+            <div id="detectedType"></div>
+            <div class="kpi-grid">
+                <div class="kpi-box"><div class="kpi-value" id="uniRows">-</div><div class="kpi-label" id="uniRowsLbl">Total Rows</div></div>
+                <div class="kpi-box"><div class="kpi-value" id="uniCols">-</div><div class="kpi-label" id="uniColsLbl">Columns</div></div>
+                <div class="kpi-box good"><div class="kpi-value" id="uniNumeric">-</div><div class="kpi-label" id="uniNumericLbl">Numeric Columns</div></div>
+            </div>
+            <h3 style="font-size:14px;margin-bottom:10px" id="insightsTitle">Key Insights</h3>
+            <div id="insightsList"></div>
+        </div>
+        <div class="card">
+            <h2 id="statsTitle">Column Statistics</h2>
+            <div class="stat-grid" id="statGrid"></div>
+        </div>
+        <div class="card">
+            <h2 id="previewTitle">Data Preview (first 5 rows)</h2>
+            <div style="overflow-x:auto"><table id="previewTable"></table></div>
         </div>
     </div>
 </div>
 
 <script>
+    let lang = 'en';
     let selectedFile = null;
 
-    function handleFile(event) {
-        selectedFile = event.target.files[0];
+    const t = {
+        en: {
+            subtitle: 'Upload your data and get instant insights',
+            uploadTitle: 'Upload Data (CSV)',
+            uploadHint: 'Click to select a CSV file',
+            uploadSub: 'Any CSV format – process data, grades, finance data',
+            btn1: 'Standard Analysis', btn2: 'AI Deep Analysis', btn3: 'Universal Analysis',
+            lbl1:'Total Cases',lbl2:'Delayed Cases',lbl3:'Delay Rate',lbl4:'Open Cases',lbl5:'Avg Delay (Days)',lbl6:'Closed Cases',
+            deptTitle:'Department Breakdown',
+            th1:'Department',th2:'Total',th3:'Open',th4:'Delayed',th5:'Avg Delay',th6:'Delay Rate',
+            aiTitle:'🤖 AI Analysis Report',healthLabel:'Process Health Score',recTitle:'AI Recommendations',
+            uniTitle:'📊 Universal Analysis',uniRowsLbl:'Total Rows',uniColsLbl:'Columns',uniNumericLbl:'Numeric Columns',
+            insightsTitle:'Key Insights',statsTitle:'Column Statistics',previewTitle:'Data Preview (first 5 rows)',
+            types:{GRADES:'📚 Grades Dataset',FINANCE:'💰 Finance Dataset',PROCESS:'⚙️ Process Dataset',GENERAL:'📋 General Dataset'}
+        },
+        de: {
+            subtitle: 'Lade deine Daten hoch und erhalte sofortige Einblicke',
+            uploadTitle: 'Daten hochladen (CSV)',
+            uploadHint: 'Klicke um eine CSV-Datei auszuwählen',
+            uploadSub: 'Beliebiges CSV-Format – Prozessdaten, Noten, Finanzdaten',
+            btn1: 'Standard-Analyse', btn2: 'KI-Tiefenanalyse', btn3: 'Universalanalyse',
+            lbl1:'Gesamtfälle',lbl2:'Verzögerte Fälle',lbl3:'Verzögerungsrate',lbl4:'Offene Fälle',lbl5:'Ø Verzögerung (Tage)',lbl6:'Abgeschlossene Fälle',
+            deptTitle:'Abteilungsübersicht',
+            th1:'Abteilung',th2:'Gesamt',th3:'Offen',th4:'Verzögert',th5:'Ø Verzögerung',th6:'Verzögerungsrate',
+            aiTitle:'🤖 KI-Analysebericht',healthLabel:'Prozess-Gesundheitsscore',recTitle:'KI-Empfehlungen',
+            uniTitle:'📊 Universalanalyse',uniRowsLbl:'Gesamtzeilen',uniColsLbl:'Spalten',uniNumericLbl:'Numerische Spalten',
+            insightsTitle:'Wichtige Erkenntnisse',statsTitle:'Spaltenstatistiken',previewTitle:'Datenvorschau (erste 5 Zeilen)',
+            types:{GRADES:'📚 Notendatensatz',FINANCE:'💰 Finanzdatensatz',PROCESS:'⚙️ Prozessdatensatz',GENERAL:'📋 Allgemeiner Datensatz'}
+        }
+    };
+
+    function setLang(l) {
+        lang = l;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        const tx = t[l];
+        document.getElementById('subtitle').textContent = tx.subtitle;
+        document.getElementById('uploadTitle').textContent = tx.uploadTitle;
+        document.getElementById('uploadHint').textContent = tx.uploadHint;
+        document.getElementById('uploadSub').textContent = tx.uploadSub;
+        document.getElementById('btn1txt').textContent = tx.btn1;
+        document.getElementById('btn2txt').textContent = tx.btn2;
+        document.getElementById('btn3txt').textContent = tx.btn3;
+        ['lbl1','lbl2','lbl3','lbl4','lbl5','lbl6','deptTitle','th1','th2','th3','th4','th5','th6',
+            'aiTitle','healthLabel','recTitle','uniTitle','uniRowsLbl','uniColsLbl','uniNumericLbl',
+            'insightsTitle','statsTitle','previewTitle'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && tx[id]) el.textContent = tx[id];
+        });
+    }
+
+    function handleFile(e) {
+        selectedFile = e.target.files[0];
         if (selectedFile) {
-            document.getElementById('filename').textContent = 'Selected: ' + selectedFile.name;
-            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('filename').textContent = (lang==='de'?'Ausgewählt: ':'Selected: ') + selectedFile.name;
+            ['btn1','btn2','btn3'].forEach(b => document.getElementById(b).disabled = false);
         }
     }
 
     async function analyze() {
         if (!selectedFile) return;
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('results').style.display = 'none';
-        document.getElementById('analyzeBtn').disabled = true;
+        const fd = new FormData(); fd.append('file', selectedFile);
+        const res = await fetch('/api/analyze', {method:'POST', body:fd});
+        if (!res.ok) { alert(lang==='de'?'Fehler: Bitte eine Prozess-CSV verwenden.':'Error: Please use a process CSV.'); return; }
+        const data = await res.json();
+        showKPIs(data);
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('ai-results').style.display = 'none';
+        document.getElementById('universal-results').style.display = 'none';
+    }
 
-        const formData = new FormData();
-        formData.append('file', selectedFile);
+    async function analyze() {
+        if (!selectedFile) return;
+        const fd1 = new FormData(); fd1.append('file', selectedFile);
+        const res = await fetch('/api/analyze', {method:'POST', body:fd1});
+        if (!res.ok) {
+            alert(lang==='de'?'Diese CSV hat kein Prozessformat. Bitte "Universalanalyse" verwenden.':'This CSV is not a process file. Please use "Universal Analysis".');
+            return;
+        }
+        const data = await res.json();
+        showKPIs(data);
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('ai-results').style.display = 'none';
+        document.getElementById('universal-results').style.display = 'none';
+    }
+
+    async function analyzeAI() {
+        if (!selectedFile) return;
+        document.getElementById('btn2').disabled = true;
+
+        const testFd = new FormData(); testFd.append('file', selectedFile);
+        const testRes = await fetch('/api/analyze', {method:'POST', body:testFd});
+
+        if (!testRes.ok) {
+            document.getElementById('btn2').disabled = false;
+            const answer = confirm(lang==='de'?
+                'Diese CSV hat kein Prozessformat.\n\nStattdessen Universalanalyse starten?' :
+                'This CSV is not a process file.\n\nStart Universal Analysis instead?');
+            if (answer) analyzeUniversal();
+            return;
+        }
 
         try {
-            const response = await fetch('/api/analyze', { method: 'POST', body: formData });
-            const data = await response.json();
-            displayResults(data);
-        } catch (error) {
-            alert('Error analyzing file. Please check the CSV format.');
+            document.getElementById('btn2').innerHTML = '🤖 ...';
+            const fd1 = new FormData(); fd1.append('file', selectedFile);
+            const fd2 = new FormData(); fd2.append('file', selectedFile);
+            const [basic, ai] = await Promise.all([
+                fetch('/api/analyze',{method:'POST',body:fd1}).then(r=>r.json()),
+                fetch('/api/analyze/ai',{method:'POST',body:fd2}).then(r=>r.json())
+            ]);
+            showKPIs(basic); showAI(ai);
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('ai-results').style.display = 'block';
+            document.getElementById('universal-results').style.display = 'none';
+        } catch(e) {
+            alert('Error: ' + e.message);
         } finally {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('btn2').disabled = false;
+            document.getElementById('btn2').innerHTML = '🤖 <span id="btn2txt">' + t[lang].btn2 + '</span>';
         }
     }
 
-    function displayResults(data) {
+    async function analyzeUniversal() {
+        if (!selectedFile) return;
+        document.getElementById('btn3').disabled = true;
+        try {
+            const fd = new FormData(); fd.append('file', selectedFile);
+            const res = await fetch('/api/analyze/universal?lang='+lang, {method:'POST', body:fd});
+            const data = await res.json();
+            showUniversal(data);
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('ai-results').style.display = 'none';
+            document.getElementById('universal-results').style.display = 'block';
+        } catch(e) { alert('Error: ' + e.message); }
+        finally { document.getElementById('btn3').disabled = false; }
+    }
+
+    function showKPIs(data) {
         document.getElementById('totalCases').textContent = data.totalCases;
         document.getElementById('delayedCases').textContent = data.delayedCases;
-        document.getElementById('delayRate').textContent = data.delayRatePercent.toFixed(1) + '%';
+        document.getElementById('delayRate').textContent = data.delayRatePercent.toFixed(1)+'%';
         document.getElementById('openCases').textContent = data.openCases;
         document.getElementById('avgDelay').textContent = data.avgDelayDays.toFixed(1);
         document.getElementById('closedCases').textContent = data.totalCases - data.openCases;
-
-        const suggList = document.getElementById('suggestions');
-        suggList.innerHTML = '';
-        data.suggestions.forEach(s => {
-            const li = document.createElement('li');
-            li.textContent = s;
-            if (s.includes('gut') || s.includes('keine')) li.className = 'good';
-            suggList.appendChild(li);
+        const tbody = document.getElementById('deptTable'); tbody.innerHTML='';
+        data.departmentBreakdown.forEach(d => {
+            const rate = d.delayRatePercent.toFixed(0);
+            tbody.innerHTML += `<tr><td><strong>${d.department}</strong></td><td>${d.totalCases}</td><td>${d.openCases}</td><td>${d.delayedCases}</td><td>${d.avgDelayDays.toFixed(1)}d</td><td><span class="badge ${rate>50?'red':rate>20?'orange':'green'}">${rate}%</span></td></tr>`;
         });
+    }
 
-        const tbody = document.getElementById('deptTable');
-        tbody.innerHTML = '';
-        data.departmentBreakdown.forEach(dept => {
-            const rate = dept.delayRatePercent.toFixed(0);
-            const badgeClass = rate > 50 ? 'red' : 'green';
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>${dept.department}</strong></td>
-                    <td>${dept.totalCases}</td>
-                    <td>${dept.openCases}</td>
-                    <td>${dept.delayedCases}</td>
-                    <td>${dept.avgDelayDays.toFixed(1)} days</td>
-                    <td><span class="badge ${badgeClass}">${rate}%</span></td>
-                </tr>`;
+    function showAI(ai) {
+        document.getElementById('aiSummary').textContent = ai.summary;
+        const score = ai.overallHealthScore;
+        const color = score>=70?'#2ecc71':score>=40?'#e67e22':'#e74c3c';
+        const hb = document.getElementById('healthBar');
+        hb.style.width = score+'%'; hb.style.background = color; hb.textContent = score+'/100';
+        document.getElementById('healthScoreLabel').textContent = score+'/100';
+        document.getElementById('healthScoreLabel').style.color = color;
+        const tc = ai.predictedTrend.includes('DETERIORAT')||ai.predictedTrend.includes('RISK')?'red':ai.predictedTrend.includes('STABLE')?'orange':'green';
+        document.getElementById('trendBox').innerHTML = `<div class="trend-box ${tc}">📈 ${ai.predictedTrend}</div>`;
+        const rl = document.getElementById('recList'); rl.innerHTML='';
+        ai.recommendations.forEach(r => {
+            rl.innerHTML += `<div class="rec-card ${r.severity}">
+      <div class="rec-header"><span class="rec-category">${r.category}</span><span class="rec-severity sev-${r.severity}">${r.severity}</span></div>
+      <div class="rec-insight">💡 ${r.insight}</div>
+      <div class="rec-action"><strong>→ ${lang==='de'?'Maßnahme':'Action'}:</strong> ${r.action}</div>
+      <div class="confidence">${lang==='de'?'Konfidenz':'Confidence'}: ${r.confidenceScore}%
+        <span class="conf-bar"><span class="conf-fill" style="width:${r.confidenceScore}%"></span></span></div>
+    </div>`;
         });
+        document.getElementById('generatedBy').textContent = '⚡ ' + ai.generatedBy;
+    }
 
-        document.getElementById('results').style.display = 'block';
+    function showUniversal(data) {
+        const tx = t[lang];
+        document.getElementById('uniRows').textContent = data.totalRows;
+        document.getElementById('uniCols').textContent = data.totalColumns;
+        document.getElementById('uniNumeric').textContent = data.numericStats.length;
+        const typeLabel = tx.types[data.detectedType] || data.detectedType;
+        document.getElementById('detectedType').innerHTML = `<div class="type-badge type-${data.detectedType}">${typeLabel}</div>`;
+        const il = document.getElementById('insightsList'); il.innerHTML='';
+        data.insights.forEach(ins => {
+            const cls = ins.includes('⚠️')?'warn':ins.includes('✅')?'good':'';
+            il.innerHTML += `<div class="insight-item ${cls}">${ins}</div>`;
+        });
+        const sg = document.getElementById('statGrid'); sg.innerHTML='';
+        data.numericStats.forEach(s => {
+            sg.innerHTML += `<div class="stat-box">
+      <h4>${s.columnName}</h4>
+      <div class="stat-row"><span>Min</span><strong>${s.min.toFixed(2)}</strong></div>
+      <div class="stat-row"><span>Max</span><strong>${s.max.toFixed(2)}</strong></div>
+      <div class="stat-row"><span>${lang==='de'?'Durchschnitt':'Average'}</span><strong>${s.average.toFixed(2)}</strong></div>
+      <div class="stat-row"><span>${lang==='de'?'Summe':'Sum'}</span><strong>${s.sum.toFixed(2)}</strong></div>
+      <div class="stat-row"><span>${lang==='de'?'Einträge':'Count'}</span><strong>${s.count}</strong></div>
+    </div>`;
+        });
+        if (data.preview.length > 0) {
+            const cols = Object.keys(data.preview[0]);
+            let html = '<thead><tr>' + cols.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+            data.preview.forEach(row => {
+                html += '<tr>' + cols.map(c=>`<td>${row[c]||''}</td>`).join('') + '</tr>';
+            });
+            document.getElementById('previewTable').innerHTML = html + '</tbody>';
+        }
     }
 </script>
 </body>
