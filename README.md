@@ -1,60 +1,80 @@
 # AI Business Process Assistant
 
-A Spring Boot REST API that analyzes business process data from CSV files and generates actionable insights.
+An intelligent business process analysis tool built with Java and Spring Boot.
+Upload any CSV file and get instant AI-powered insights, KPIs, and recommendations.
 
-## What it does
+## Live Features
 
-- Upload a CSV file with business process data
-- Calculates KPIs: delay rate, average delay, open cases
-- Generates rule-based improvement suggestions
-- Returns structured JSON results
+- Upload any CSV file (process data, grades, finance data)
+- Automatic dataset type detection (PROCESS / GRADES / FINANCE / GENERAL)
+- KPI calculation: delay rate, average delay, open cases
+- Department-based risk analysis
+- AI Recommendation Engine with confidence scores
+- Process health score (0-100)
+- Trend prediction
+- Interactive HTML dashboard
+- DE / EN language switch
+- Swagger UI API documentation
 
 ## Tech Stack
 
 - Java 17
 - Spring Boot 3.5
-- OpenCSV
+- OpenCSV + Apache Commons CSV
 - Lombok
 - Maven
+- Vanilla HTML/CSS/JavaScript Frontend
+- Swagger UI (OpenAPI 3.0)
 
-## Run the application
+## How to run
 
 ./mvnw spring-boot:run
 
-The API starts on http://localhost:8080
+App starts on http://localhost:8080
 
-## API Usage
+## API Endpoints
 
-POST /api/analyze
+POST /api/analyze              - Standard process analysis
+POST /api/analyze/ai           - AI deep analysis with recommendations
+POST /api/analyze/universal    - Universal analysis for any CSV format
 
-Send a CSV file as multipart/form-data with field name "file"
+API Documentation: http://localhost:8080/swagger-ui/index.html
 
-Example Response:
+## Example Response (AI Analysis)
+
 {
-  "totalCases": 10,
-  "openCases": 4,
-  "delayedCases": 7,
-  "avgDelayDays": 5.5,
-  "delayRatePercent": 70.0,
-  "suggestions": ["Warnung: Ueber 40% der Faelle wurden verspaetet abgeschlossen!"]
+  "summary": "Analysis of 10 process cases reveals a HIGH risk profile with health score 41/100.",
+  "riskLevel": "HIGH",
+  "overallHealthScore": 41,
+  "predictedTrend": "AT RISK - Close monitoring needed",
+  "recommendations": [
+    {
+      "category": "Process Efficiency",
+      "severity": "CRITICAL",
+      "insight": "Over 70% of cases are delayed.",
+      "action": "Conduct an emergency process audit within 2 weeks.",
+      "confidenceScore": 94
+    }
+  ]
 }
 
 ## Project Structure
 
 src/main/java/com/suayb/bpa/
-- controller/   REST endpoints
-- service/      Business logic
-- model/        Data classes
-- dto/          Response objects
-- rules/        Analysis rules
+- controller/    REST endpoints (ProcessController)
+- service/       Business logic (AnalysisService, AIRecommendationService, UniversalCsvService)
+- model/         Data classes (ProcessCase)
+- dto/           Response objects (AnalysisResult, AIAnalysisResult, UniversalAnalysisResult)
+- rules/         Rule engine (AnalysisRules)
 
 ## Roadmap
 
-- Department-based analysis
 - React frontend
-- AI-powered recommendations
+- Database integration
 - Docker deployment
+- Real AI API integration (OpenAI / Claude)
 
 ## Author
 
 Suayb - Wirtschaftsinformatik Student
+GitHub: https://github.com/suaybboncuksb-jpg
